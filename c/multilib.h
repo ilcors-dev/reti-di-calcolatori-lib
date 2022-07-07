@@ -217,3 +217,105 @@ int count_files_in_dir(char *dirname)
     closedir(dir);
     return count;
 }
+
+struct FileScanOutput
+{
+    int nChars;
+    int nWords;
+    int nLines;
+    int errorCode;
+};
+typedef struct FileScanOutput FileScanOutput;
+
+/**
+ * Counts the chars, words and lines of a target file.
+ */
+FileScanOutput filescan(char *filepath)
+{
+    static FileScanOutput result;
+    result.nChars = 0;
+    result.nLines = 0;
+    result.nWords = 0;
+    result.errorCode = 0;
+
+    int fd, nread = 0;
+    char c, prevChar = ' ';
+    char word[STR_LEN];
+
+    if ((fd = open(filepath, O_RDONLY)) < 0)
+    {
+        perror("open file sorgente");
+        result.errorCode = 1;
+        return result;
+    }
+
+    while ((nread = read(fd, &c, sizeof(c))) > 0)
+    {
+        result.nChars++;
+
+        if (c == ' ' && prevChar == ' ')
+        {
+            continue;
+        }
+
+        if (c == '\n' || c == '\r')
+        {
+            result.nLines++;
+        }
+        if (c == ' ')
+        {
+            result.nWords++;
+        }
+
+        prevChar = c;
+    }
+
+    printf("nChars: %d\n", result.nChars);
+    printf("nLines: %d\n", result.nLines);
+    printf("nWords: %d\n", result.nWords);
+
+    return result;
+}
+
+/**
+ * Scans the files in a given directory by ignoring the ones which size < threshold
+ */
+int dirscan_threshold(char *targetDir, int threshold)
+{
+    static int result = 0;
+    DIR *dir;
+    struct dirent *dd;
+    int i, fd_file;
+    off_t fileSize;
+
+    result = -1;
+
+    printf("Richiesto direttorio %s\n", targetDir);
+    if ((dir = opendir(targetDir)) == NULL)
+    {
+        return result;
+    }
+
+    result = 0;
+    while ((dd = readdir(dir)) != NULL)
+    {
+        fd_file = open(dd->d_name, O_RDONLY);
+
+        if (fd_file < 0)
+        {
+            printf("File inesistente\n");
+            return result;
+        }
+
+        fileSize = lseek(fd_file, 0L, SEEK_END);
+        if (fileSize >= threshold)
+        {
+            printf("DEBUG: candidate file size %lld\n", fileSize);
+            result++;
+        }
+    }
+
+    printf("Numero totale di file nel direttorio richiesto %d\n", result);
+
+    return result;
+}
