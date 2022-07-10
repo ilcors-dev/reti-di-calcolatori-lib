@@ -6,8 +6,10 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #define STR_LEN 512
+#define BUFF_READ_LEN 20
 
 /**
  * Checks whether the port is valid or not.
@@ -318,4 +320,106 @@ int dirscan_threshold(char *targetDir, int threshold)
     printf("Numero totale di file nel direttorio richiesto %d\n", result);
 
     return result;
+}
+
+/**
+ * Sends the file corresponding to the given path through the given socket.
+ *
+ * @return the number of bytes sent or -1 in case of error.
+ */
+int send_file_via_socket(int socket_d, char *filename, char *path)
+{
+    int file_fd, nread, size = 0;
+    char fbuff[BUFF_READ_LEN];
+
+    printf("transferring %s to client\n", filename);
+
+    // need to pass the raw STR_LEN size, sizeof(filename) would be wrong for some reason
+    // !CHECK!
+    write(socket_d, filename, STR_LEN);
+
+    if ((file_fd = open(path, O_RDONLY)) < 0)
+    {
+        perror("file open");
+        return -1;
+    }
+
+    // get the file size bytes and send it to the recipient
+    size = lseek(file_fd, 0L, SEEK_END);
+    lseek(file_fd, 0L, SEEK_SET);
+    write(socket_d, &size, sizeof(size));
+
+    printf("sending file size of %s: %d\n", filename, size);
+
+    // buffered read of the file in chunks of BUFF_READ_LEN bytes
+    while ((nread = read(file_fd, &fbuff, sizeof(fbuff))) > 0)
+    {
+        // write number of read bytes from the file
+        if (write(socket_d, fbuff, nread) < 0)
+        {
+            perror("writing to socket_d");
+            return -1;
+        }
+    }
+
+    close(file_fd);
+
+    printf("file transfer completed, sent %d bytes\n", size);
+
+    return size;
+}
+
+/**
+ * Saves a file received from a socket to the current directory.
+ *
+ * @return the number of bytes received or -1 in case of error.
+ */
+int save_file_from_socket(int socket_d)
+{
+    int nread, file_fd, size = 0;
+    char filename[STR_LEN];
+    char c;
+
+    // read the filename from the socket
+    if (read(socket_d, &filename, sizeof(filename)) < 0)
+    {
+        perror("reading from socket_d");
+        exit(1);
+    }
+
+    printf("Downloading %s\n", filename);
+
+    // receive the file size
+    if (read(socket_d, &size, sizeof(size)) < 0)
+    {
+        perror("reading from socket_d");
+        return -1;
+    }
+
+    printf("received file size: %d\n", size);
+
+    // open the file for writing
+    if ((file_fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0777)) < 0)
+    {
+        perror("file open");
+        return -1;
+    }
+
+    printf("waiting for file..\n");
+
+    // receive byte-a-byte and write them to the file
+    for (int i = 0; i < size; i++)
+    {
+        if (read(socket_d, &c, sizeof(c)) <= 0)
+            break;
+
+        if (write(file_fd, &c, sizeof(c)) < 0)
+            break;
+    }
+
+    close(file_fd);
+
+    printf("wrote %d bytes to disk\n", size);
+
+    return size;
 }
