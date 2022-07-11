@@ -8,8 +8,41 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#define STR_LEN 512
+#define STR_LEN 256
 #define BUFF_READ_LEN 20
+
+#ifndef MULTILIB_ASCII
+#define MULTILIB_ASCII
+
+static const int VOWELS[] = {97, 101, 105, 111, 117};
+static const int UPPER_VOWELS[] = {65, 69, 73, 79, 85};
+static const int CONSONANTS[] = {98, 99, 100, 102, 103, 104, 106, 107, 108, 109, 110, 112, 113, 114, 115, 116, 118, 119, 120, 121, 122};
+static const int UPPER_CONSONANTS[] = {66, 67, 68, 70, 71, 72, 74, 75, 76, 77, 78, 80, 81, 82, 83, 84, 86, 87, 88, 89, 90};
+
+static const int VOWELS_LEN = 5;
+static const int CONSONANTS_LEN = 21;
+
+#endif
+
+/**
+ * Usually used between server-client communication when the server wants to terminate the sending of files, because,
+ * for example it has already sent all the files.
+ */
+static const char FILE_TRANSMISSION_END[] = "__#done";
+
+/**
+ * Used as temporary file were to write temporary data instead of storing it in the ram.
+ */
+static const char TEMP_OUT_FILE[] = "__tmp_out";
+
+struct FileScanOutput
+{
+    int nChars;
+    int nWords;
+    int nLines;
+    int errorCode;
+};
+typedef struct FileScanOutput FileScanOutput;
 
 /**
  * Checks whether the port is valid or not.
@@ -38,6 +71,102 @@ int is_numeric_string(char *str)
     }
 
     return 1;
+}
+
+/**
+ * Checks whether the given char parameter is a vowel or not.
+ *
+ * @param c the char to check
+ *
+ * @retval 0 if the char is not a vowel
+ * @retval 1 if the char is a vowel
+ */
+int isVowel(char c)
+{
+    int is = 0;
+
+    for (int i = 0; i < VOWELS_LEN; i++)
+    {
+        if (c == VOWELS[i])
+        {
+            is = 1;
+        }
+    }
+
+    if (is == 0)
+    {
+        for (int i = 0; i < VOWELS_LEN; i++)
+        {
+            if (c == UPPER_VOWELS[i])
+            {
+                is = 1;
+            }
+        }
+    }
+
+    return is;
+}
+
+/**
+ * Checks whether the given char parameter is a consonant or not.
+ *
+ * @param c the char to check
+ *
+ * @retval 0 if the char is not a consonant
+ * @retval 1 if the char is a consonant
+ */
+int isConsonant(char c)
+{
+    int is = 0;
+
+    for (int i = 0; i < CONSONANTS_LEN; i++)
+    {
+        if (c == CONSONANTS[i])
+        {
+            is = 1;
+        }
+    }
+
+    if (is == 0)
+    {
+        for (int i = 0; i < CONSONANTS_LEN; i++)
+        {
+            if (c == UPPER_CONSONANTS[i])
+            {
+                is = 1;
+            }
+        }
+    }
+
+    return is;
+}
+
+/**
+ * Checks whether the str parameter contains a vocal AND a consonant
+ *
+ * @retval 0 if the str does not contain at least a vocal AND a consonant
+ * @retval 1 if the str contains at least a vocal AND a consonant
+ */
+int hasVocalAndConsonant(char *str)
+{
+    int i;
+    int hasVocal = 0;
+    int hasConsonant = 0;
+
+    for (i = 0; i < strlen(str) && (hasVocal == 0 || hasConsonant == 0); i++)
+    {
+        if (hasVocal == 0)
+        {
+            hasVocal = isVowel(str[i]);
+        }
+
+        if (hasConsonant == 0)
+        {
+            hasConsonant = isConsonant(str[i]);
+        }
+    }
+
+    return hasVocal == 1 && hasConsonant == 1;
 }
 
 /**
@@ -90,11 +219,10 @@ int find_longest_word_in_file(char *file, char *longestWordResult)
  */
 int delete_words_from_file(char *file, char *wordToRemove)
 {
-    char __tmp[10] = "__tmp_out";
     char c;
     char tmpword[STR_LEN];
     int rdFile, wrFile;
-    int nread = 0, removed = 0, currentDim = 0;
+    int nread = 0, VOWELSRemoved = 0, currentDim = 0;
 
     if ((rdFile = open(file, O_RDONLY)) < 0)
     {
@@ -102,7 +230,7 @@ int delete_words_from_file(char *file, char *wordToRemove)
         return -1;
     }
 
-    if ((wrFile = open(__tmp, O_CREAT | O_WRONLY, 0644)) < 0)
+    if ((wrFile = open(TEMP_OUT_FILE, O_CREAT | O_WRONLY, 0644)) < 0)
     {
         perror("open file destinazione");
         return -1;
@@ -124,7 +252,7 @@ int delete_words_from_file(char *file, char *wordToRemove)
             // we write what we read to the file including the word delimiter char
             if (strcmp(wordToRemove, tmpword) == 0)
             {
-                removed++;
+                VOWELSRemoved++;
             }
             else
             {
@@ -148,7 +276,7 @@ int delete_words_from_file(char *file, char *wordToRemove)
         return -1;
     }
 
-    if (rename(__tmp, file) != 0)
+    if (rename(TEMP_OUT_FILE, file) != 0)
     {
         perror("rename file");
         return -1;
@@ -157,7 +285,7 @@ int delete_words_from_file(char *file, char *wordToRemove)
     close(rdFile);
     close(wrFile);
 
-    return removed;
+    return VOWELSRemoved;
 }
 
 /**
@@ -220,15 +348,6 @@ int count_files_in_dir(char *dirname)
     return count;
 }
 
-struct FileScanOutput
-{
-    int nChars;
-    int nWords;
-    int nLines;
-    int errorCode;
-};
-typedef struct FileScanOutput FileScanOutput;
-
 /**
  * Counts the chars, words and lines of a target file.
  */
@@ -280,6 +399,64 @@ FileScanOutput filescan(char *filepath)
 }
 
 /**
+ * Removes the VOWELS from a file content.
+ *
+ * @param file the file to remove the VOWELS from
+ *
+ * @retval -1 if an error occurred
+ * @retval the number of VOWELS removed from the file (>= 0)
+ */
+int delete_VOWELS_from_file(char *file)
+{
+    char c;
+    char tmpword[STR_LEN];
+    int rdFile, wrFile;
+    int nread = 0, VOWELSRemoved = 0, currentDim = 0;
+
+    if ((rdFile = open(file, O_RDONLY)) < 0)
+    {
+        perror("open file sorgente");
+        return -1;
+    }
+
+    if ((wrFile = open(TEMP_OUT_FILE, O_CREAT | O_WRONLY, 0644)) < 0)
+    {
+        perror("open file destinazione");
+        return -1;
+    }
+
+    while ((nread = read(rdFile, &c, sizeof(c))) > 0)
+    {
+        if (isVowel(c) == 0)
+        {
+            write(wrFile, &c, 1);
+        }
+        else
+        {
+            VOWELSRemoved++;
+        }
+    }
+
+    // remove the current file & replace it with the tmp one that will get renominated to the original file
+    if (remove(file) != 0)
+    {
+        perror("remove file");
+        return -1;
+    }
+
+    if (rename(TEMP_OUT_FILE, file) != 0)
+    {
+        perror("rename file");
+        return -1;
+    }
+
+    close(rdFile);
+    close(wrFile);
+
+    return VOWELSRemoved;
+}
+
+/**
  * Scans the files in a given directory by ignoring the ones which size < threshold
  */
 int dirscan_threshold(char *targetDir, int threshold)
@@ -323,14 +500,22 @@ int dirscan_threshold(char *targetDir, int threshold)
 }
 
 /**
- * Sends the file corresponding to the given path through the given socket.
+ * Sends the file corresponding to the given /path/filename through the given socket.
+ * NOTE: the path will be completed with the filename if it is not already present.
  *
- * @return the number of bytes sent or -1 in case of error.
+ * @param socketfd the socket to send the file through
+ * @param filename the filename of the file to send
+ * @param path the path of the file to send, may be either the full path or not,
+ * if not it will be completed with the filename
+ *
+ * @retval the number of bytes sent
+ * @retval -1 in case of error.
  */
 int send_file_via_socket(int socket_d, char *filename, char *path)
 {
     int file_fd, nread, size = 0;
     char fbuff[BUFF_READ_LEN];
+    char fullpath[STR_LEN];
 
     printf("transferring %s to client\n", filename);
 
@@ -338,7 +523,20 @@ int send_file_via_socket(int socket_d, char *filename, char *path)
     // !CHECK!
     write(socket_d, filename, STR_LEN);
 
-    if ((file_fd = open(path, O_RDONLY)) < 0)
+    strcpy(fullpath, path);
+    // check whether the path has already the filename specified or not -> /path/filename
+    // if not, add it to the path
+    if (strcmp(filename, strrchr(path, '/') + 1) != 0)
+    {
+        // no '/' specified at the end of the path -> add it
+        if (fullpath[strlen(fullpath) - 1] != '/')
+            strcat(fullpath, "/");
+
+        // add the filename at the end
+        strcat(fullpath, filename);
+    }
+
+    if ((file_fd = open(fullpath, O_RDONLY)) < 0)
     {
         perror("file open");
         return -1;
@@ -372,7 +570,11 @@ int send_file_via_socket(int socket_d, char *filename, char *path)
 /**
  * Saves a file received from a socket to the current directory.
  *
- * @return the number of bytes received or -1 in case of error.
+ * @param socket_d the socket descriptor
+ *
+ * @retval > 0 the number of bytes received
+ * @retval 0 in case the server signals the end of the file transmission with the FILE_TRANSMISSION_END marker
+ * @retval -1 in case of error.
  */
 int save_file_from_socket(int socket_d)
 {
@@ -387,6 +589,18 @@ int save_file_from_socket(int socket_d)
         exit(1);
     }
 
+    if (strcmp(filename, FILE_TRANSMISSION_END) == 0)
+    {
+        return 0;
+    }
+
+    // open the file for writing
+    if ((file_fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0777)) < 0)
+    {
+        perror("file open");
+        return -1;
+    }
+
     printf("Downloading %s\n", filename);
 
     // receive the file size
@@ -397,13 +611,6 @@ int save_file_from_socket(int socket_d)
     }
 
     printf("received file size: %d\n", size);
-
-    // open the file for writing
-    if ((file_fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0777)) < 0)
-    {
-        perror("file open");
-        return -1;
-    }
 
     printf("waiting for file..\n");
 
