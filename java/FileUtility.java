@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.rmi.RemoteException;
 
 public class FileUtility {
     /**
@@ -325,5 +326,111 @@ public class FileUtility {
         }
 
         return count;
+    }
+
+    /**
+     * Lists files in a given directory (and sub-dir) which name has at least 3
+     * consonants.
+     * 
+     * @param filepath
+     * @return the list of files in the directory that match the pattern
+     * @throws RemoteException
+     */
+    public String listFilesWithConsonantNames(String filepath) throws RemoteException {
+        File f = new File(filepath);
+        File[] files = f.listFiles();
+        String output = "";
+
+        for (int i = 0; i < files.length; i++) {
+            if (files[i].isDirectory()) {
+                output += "\t +" + files[i].getAbsolutePath() + "\n";
+                output += "\t" + listFilesWithConsonantNames(files[i].getAbsolutePath()) + "\n";
+            } else {
+                int consonantCount = 0;
+                String toLowerCaseFileName = files[i].getName().toLowerCase();
+
+                for (int j = 0; j < (toLowerCaseFileName.length()) && consonantCount < 3; j++) {
+                    if (toLowerCaseFileName.charAt(j) != 'a' && toLowerCaseFileName.charAt(j) != 'e'
+                            && toLowerCaseFileName.charAt(j) != 'i' && toLowerCaseFileName.charAt(j) != 'o'
+                            && toLowerCaseFileName.charAt(j) != 'u') {
+                        consonantCount++;
+                    }
+                }
+
+                if (consonantCount >= 3) {
+                    output += "\t -" + files[i].getName() + "\n";
+                }
+            }
+        }
+
+        return output;
+    }
+
+    /**
+     * Adds a progressive number in front of each odd row of a given file identified
+     * by filepath.
+     * 
+     * @param filepath
+     * @return execution status 1=success, 0=failure
+     * @throws RemoteException
+     */
+    public int addNumbersToOddRows(String filepath) throws RemoteException {
+        BufferedReader br = null;
+        BufferedWriter bw = null;
+        int lineNumber = 0;
+        String line;
+
+        try {
+            br = new BufferedReader(new FileReader(filepath));
+            bw = new BufferedWriter(new FileWriter("__temp"));
+        } catch (IOException e) {
+            System.out.println("File not dound ");
+            e.printStackTrace();
+            throw new RemoteException(e.getMessage());
+        }
+
+        try {
+            while ((line = br.readLine()) != null) {
+                if (lineNumber % 2 == 0) {
+                    bw.write(line + "\n");
+                } else {
+                    bw.write(lineNumber + " " + line + "\n");
+                }
+
+                lineNumber++;
+            }
+        } catch (Exception e) {
+            try {
+                br.close();
+                bw.close();
+            } catch (Exception ee) {
+                throw new RemoteException(ee.getMessage());
+            }
+            throw new RemoteException(e.getMessage());
+        }
+
+        try {
+            br.close();
+            bw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RemoteException(e.getMessage());
+        }
+
+        // renaming file...
+        File file = new File(filepath);
+        File tempFile = new File("__temp");
+
+        if (!file.delete()) {
+            System.out.println("Error deleting " + filepath);
+            throw new RemoteException("Could not delete old file");
+        }
+
+        if (!tempFile.renameTo(file)) {
+            System.out.println("Error renaming " + filepath);
+            throw new RemoteException("Could not rename file");
+        }
+
+        return lineNumber;
     }
 }
