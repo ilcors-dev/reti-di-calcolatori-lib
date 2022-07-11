@@ -222,7 +222,7 @@ int delete_words_from_file(char *file, char *wordToRemove)
     char c;
     char tmpword[STR_LEN];
     int rdFile, wrFile;
-    int nread = 0, VOWELSRemoved = 0, currentDim = 0;
+    int nread = 0, removed = 0, currentDim = 0;
 
     if ((rdFile = open(file, O_RDONLY)) < 0)
     {
@@ -252,7 +252,7 @@ int delete_words_from_file(char *file, char *wordToRemove)
             // we write what we read to the file including the word delimiter char
             if (strcmp(wordToRemove, tmpword) == 0)
             {
-                VOWELSRemoved++;
+                removed++;
             }
             else
             {
@@ -285,7 +285,7 @@ int delete_words_from_file(char *file, char *wordToRemove)
     close(rdFile);
     close(wrFile);
 
-    return VOWELSRemoved;
+    return removed;
 }
 
 /**
@@ -406,12 +406,12 @@ FileScanOutput filescan(char *filepath)
  * @retval -1 if an error occurred
  * @retval the number of VOWELS removed from the file (>= 0)
  */
-int delete_VOWELS_from_file(char *file)
+int delete_vowels_from_file(char *file)
 {
     char c;
     char tmpword[STR_LEN];
     int rdFile, wrFile;
-    int nread = 0, VOWELSRemoved = 0, currentDim = 0;
+    int nread = 0, vowelsRemoved = 0, currentDim = 0;
 
     if ((rdFile = open(file, O_RDONLY)) < 0)
     {
@@ -433,7 +433,7 @@ int delete_VOWELS_from_file(char *file)
         }
         else
         {
-            VOWELSRemoved++;
+            vowelsRemoved++;
         }
     }
 
@@ -453,7 +453,7 @@ int delete_VOWELS_from_file(char *file)
     close(rdFile);
     close(wrFile);
 
-    return VOWELSRemoved;
+    return vowelsRemoved;
 }
 
 /**
