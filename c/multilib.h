@@ -503,7 +503,7 @@ int dirscan_threshold(char *targetDir, int threshold)
  * Sends the file corresponding to the given /path/filename through the given socket.
  * NOTE: the path will be completed with the filename if it is not already present.
  *
- * @param socketfd the socket to send the file through
+ * @param socket_d the socket to send the file through
  * @param filename the filename of the file to send
  * @param path the path of the file to send, may be either the full path or not,
  * if not it will be completed with the filename
@@ -521,11 +521,11 @@ int send_file_via_socket(int socket_d, char *filename, char *path)
 
     // need to pass the raw STR_LEN size, sizeof(filename) would be wrong for some reason
     /*
-	* ATTENZIONE, usare strlen e NON
-	* sizeof(*msg) che restituisce
-	* NON la dimensione della stringa puntata da *msg,
-	* MA la dimensione di un puntatore, cio� 4 byte.
-	*/
+     * ATTENZIONE, usare strlen e NON
+     * sizeof(*msg) che restituisce
+     * NON la dimensione della stringa puntata da *msg,
+     * MA la dimensione di un puntatore, cio� 4 byte.
+     */
     // !CHECK!
     write(socket_d, filename, STR_LEN);
 
