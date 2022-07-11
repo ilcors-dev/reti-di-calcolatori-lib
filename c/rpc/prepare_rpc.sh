@@ -40,6 +40,7 @@ rpcgen "${filename}"
 
 echo "--> Bundle Client.."
 echo
+# Note: _xdr.c may not be present check the files created by rpcgen in case
 
 gcc "${noextension}_client.c"  "${noextension}_clnt.c" "${noextension}_xdr.c" -o client 
 
