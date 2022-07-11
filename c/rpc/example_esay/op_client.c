@@ -28,8 +28,6 @@ int main(int argc, char *argv[]){
 	op.op1 = atoi(argv[3]); 
 	op.op2 = atoi(argv[4]);
 
-	server = argv[1];
-
 	cl = clnt_create(server, OPERAZIONIPROG, OPERAZIONIVERS, "udp");
 	if (cl == NULL) {
 		clnt_pcreateerror(server);
