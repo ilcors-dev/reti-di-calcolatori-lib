@@ -335,6 +335,12 @@ int send_file_via_socket(int socket_d, char *filename, char *path)
     printf("transferring %s to client\n", filename);
 
     // need to pass the raw STR_LEN size, sizeof(filename) would be wrong for some reason
+    /*
+	* ATTENZIONE, usare strlen e NON
+	* sizeof(*msg) che restituisce
+	* NON la dimensione della stringa puntata da *msg,
+	* MA la dimensione di un puntatore, cio� 4 byte.
+	*/
     // !CHECK!
     write(socket_d, filename, STR_LEN);
 
