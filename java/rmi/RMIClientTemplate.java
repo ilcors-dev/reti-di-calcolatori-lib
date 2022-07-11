@@ -22,10 +22,6 @@ class RMIClientTemplate {
 		registryHost = args[0];
 		serviceName = args[1];
 
-		if (System.getSecurityManager() == null) {
-			System.setSecurityManager(new RMISecurityManager());
-		}
-
 		System.out.println("Invio richieste a " + registryHost + " per il servizio di nome " + serviceName);
 
 		// Connessione al servizio RMI remoto

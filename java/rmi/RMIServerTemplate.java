@@ -17,11 +17,6 @@ public class RMIServerTemplate extends UnicastRemoteObject implements RMIServerT
         String registryHost = "localhost";
         String serviceName = "RMIServerTemplate";
 
-        // setting the security manager
-        if (System.getSecurityManager() == null) {
-            System.setSecurityManager(new RMISecurityManager());
-        }
-
         // where the server is located in the rmi registry
         String completeName = "//" + registryHost + ":" + REGISTRYPORT + "/" + serviceName;
 
