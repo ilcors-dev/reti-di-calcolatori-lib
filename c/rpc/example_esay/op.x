@@ -1,4 +1,4 @@
-/* echo.x */
+/* op.x */
 struct Operandi{ int op1; int op2; };
 
 program OPERAZIONIPROG {
