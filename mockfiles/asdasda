@@ -1,0 +1,35 @@
+LIBERO
+Cerca in Digiland
+
+ uzappiClibreriefunzionifputs.html
+Segnala abuso
+PROFILO
+BLOG
+SITO
+SCOPRI
+SITI
+Linguaggio C - fputs(), puts()
+NOME
+fputs(), puts() - output di una stringa
+SINOPSI
+
+#include <stdio.h>
+
+int fputs(const char *s, FILE *stream);
+int puts(const char *s);
+    
+DESCRIZIONE
+La funzione fputs() scrive la stringa s su stream.
+La funzione puts() scrive la stringa s sullo stdout aggiungendo il carattere di new-line '\n'.
+VALORE DI RITORNO
+Le funzioni fputs() e puts() ritornano un numero non-negativo in caso di successo e EOF in caso di errore.
+CONFORME A
+ANSI C, POSIX.1
+VEDI ANCHE
+fopen() fdopen() freopen() tmpfile() fclose() setbuf() setbuffer() setlinebuf() setvbuf() clearerr() feof() ferror() fileno() fseek() rewind() ftell() fgetpos() fsetpos() fflush() fgetc() getc() getchar() ungetc() fputc() putc() putchar() fgets() gets() scanf() fscanf() sscanf() vscanf() vsscanf() vfscanf() printf() fprintf() sprintf() snprintf() vprintf() vfprintf() vsprintf() vsnprintf() fread() fwrite()
+Indice-C Indice linguaggio C
+Indice librerie Indice librerie C
+At Home Umberto Zappi Home Page
+Indice funzioni Indice funzioni C
+Realizzato da Umberto Zappi (e-mail: e-mail to uzappi@inwind.ituzappi@inwind.it)
+Data ultimo aggiornamento: 10/13/2000 23:28:03
