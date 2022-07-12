@@ -1,8 +1,10 @@
 #!/bin/sh
 filename=$1
+server=${2:"${filename%.*}_client.c"}
+client=${3:"${filename%.*}_server.c"}
 
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <file.x>"
+if [ "$#" -lt 1 ] && ["$#" -gt 3 ] ; then
+    echo "Usage: $0 <file.x> <?server> <?client>"
     exit 1
 fi
 
@@ -42,11 +44,11 @@ echo "--> Bundle Client.."
 echo
 # Note: _xdr.c may not be present check the files created by rpcgen in case
 
-gcc "${noextension}_client.c"  "${noextension}_clnt.c" "${noextension}_xdr.c" -o client 
+gcc "${client}"  "${noextension}_clnt.c" "${noextension}_xdr.c" -o client 
 
 echo "--> Bundle Server.."
 echo
 
-gcc "${noextension}_proc.c"  "${noextension}_svc.c" "${noextension}_xdr.c" -o server 
+gcc "${server}"  "${noextension}_svc.c" "${noextension}_xdr.c" -o server 
 
 echo "--> Setup complete!"
