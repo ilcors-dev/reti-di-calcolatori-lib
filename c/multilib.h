@@ -129,7 +129,7 @@ int ends_with(const char *str, const char *suffix)
  * @retval 0 if the char is not a vowel
  * @retval 1 if the char is a vowel
  */
-int isVowel(char c)
+int is_vowel(char c)
 {
     int is = 0;
 
@@ -163,7 +163,7 @@ int isVowel(char c)
  * @retval 0 if the char is not a consonant
  * @retval 1 if the char is a consonant
  */
-int isConsonant(char c)
+int is_consonant(char c)
 {
     int is = 0;
 
@@ -195,7 +195,7 @@ int isConsonant(char c)
  * @retval 0 if the str does not contain at least a vocal AND a consonant
  * @retval 1 if the str contains at least a vocal AND a consonant
  */
-int hasVocalAndConsonant(char *str)
+int has_vocal_and_consonant(char *str)
 {
     int i;
     int hasVocal = 0;
@@ -205,12 +205,12 @@ int hasVocalAndConsonant(char *str)
     {
         if (hasVocal == 0)
         {
-            hasVocal = isVowel(str[i]);
+            hasVocal = is_vowel(str[i]);
         }
 
         if (hasConsonant == 0)
         {
-            hasConsonant = isConsonant(str[i]);
+            hasConsonant = is_consonant(str[i]);
         }
     }
 
@@ -552,7 +552,7 @@ int delete_vowels_from_file(char *file)
 
     while ((nread = read(rdFile, &c, sizeof(c))) > 0)
     {
-        if (isVowel(c) == 0)
+        if (is_vowel(c) == 0)
         {
             write(wrFile, &c, 1);
         }
