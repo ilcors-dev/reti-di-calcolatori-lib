@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 
 public class FileUtility {
+    final static String FILE_TRANSMISSION_END = "__#done";
+    final static String TEMP_OUT_FILE = "__tmp_out";
+
     /**
      * Swaps rows of a file at the given line numbers
      * 
@@ -31,7 +34,7 @@ public class FileUtility {
 
         try {
             br = new BufferedReader(new FileReader(filePath));
-            bw = new BufferedWriter(new FileWriter("temp"));
+            bw = new BufferedWriter(new FileWriter(TEMP_OUT_FILE));
         } catch (IOException e) {
             System.out.println("File not dound ");
             e.printStackTrace();
@@ -86,7 +89,7 @@ public class FileUtility {
 
         // renaming file...
         File file = new File(filePath);
-        File tempFile = new File("temp");
+        File tempFile = new File(TEMP_OUT_FILE);
 
         if (!tempFile.renameTo(file)) {
             System.out.println("Error renaming " + filePath);
@@ -291,7 +294,7 @@ public class FileUtility {
         System.out.println("[delete row] Deleting row..");
 
         try {
-            bw = new BufferedWriter(new FileWriter("temp"));
+            bw = new BufferedWriter(new FileWriter(TEMP_OUT_FILE));
         } catch (IOException e) {
             System.out.println("[delete row] File not found or error while creating temp file");
             throw new RemoteException(e.getMessage());
@@ -319,14 +322,14 @@ public class FileUtility {
         }
 
         if (rowNum > count) {
-            new File("temp").delete();
+            new File(TEMP_OUT_FILE).delete();
             System.out.println("[delete row] Row number is greater than the number of lines in the file");
             throw new RemoteException("Row number is greater than the number of lines in the file");
         }
 
         // renaming file...
         File file = new File(filepath);
-        File tempFile = new File("temp");
+        File tempFile = new File(TEMP_OUT_FILE);
 
         if (!tempFile.renameTo(new File(file.getName() + "_deleted_row"))) {
             System.out.println("[delete row] Error renaming " + filepath);
