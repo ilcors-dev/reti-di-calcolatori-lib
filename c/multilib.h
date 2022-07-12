@@ -74,6 +74,54 @@ int is_numeric_string(char *str)
 }
 
 /**
+ * Checks whether the str param starts with the prefix param.
+ *
+ * @retval 0 if not
+ * @retval 1 if yes
+ */
+int starts_with(const char *str, const char *prefix)
+{
+    if (!str || !prefix)
+    {
+        return 0;
+    }
+
+    size_t lenstr = strlen(str);
+    size_t lenprefix = strlen(prefix);
+
+    if (lenprefix > lenstr)
+    {
+        return 0;
+    }
+
+    return strncmp(prefix, str, strlen(prefix)) == 0;
+}
+
+/**
+ * Checks whether the str param ends with the suffix param.
+ *
+ * @retval 0 if not
+ * @retval 1 if yes
+ */
+int ends_with(const char *str, const char *suffix)
+{
+    if (!str || !suffix)
+    {
+        return 0;
+    }
+
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+
+    if (lensuffix > lenstr)
+    {
+        return 0;
+    }
+
+    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
+/**
  * Checks whether the given char parameter is a vowel or not.
  *
  * @param c the char to check
@@ -167,6 +215,83 @@ int hasVocalAndConsonant(char *str)
     }
 
     return hasVocal == 1 && hasConsonant == 1;
+}
+
+/**
+ * Returns the given line at the given line number.
+ *
+ * @param *filepath the path of the file to read
+ * @param *line the line to return
+ */
+char *get_line_str_of_file(char *filepath, int line)
+{
+    char ris[STR_LEN];
+    char c;
+    int fd, curline = 0;
+
+    if ((fd = open(filepath, O_RDONLY)) < 0)
+    {
+        perror("open");
+        return NULL;
+    }
+
+    while ((read(fd, &c, sizeof(char))) > 0)
+    {
+        if ((curline - 1) == line)
+        {
+            strcat(ris, &c);
+        }
+
+        if (c == '\n' || c == '\r')
+        {
+            curline++;
+        }
+    }
+
+    close(fd);
+
+    return ris;
+}
+
+/**
+ * Counts in how many lines the given str parameter is found in the file.
+ *
+ * @param *filepath the path of the file to scan
+ * @param *str the string to search for
+ *
+ * @retval -1 if some error occurs
+ * @retval >= 0 the number of lines found containing the str parameter
+ */
+int find_str_occurrences_in_file_line(char *filepath, char *str)
+{
+    char c;
+    int fd, ris = 0;
+    char line[STR_LEN];
+
+    if ((fd = open(filepath, O_RDONLY)) < 0)
+    {
+        perror("open");
+        return -1;
+    }
+
+    while ((read(fd, &c, sizeof(char))) > 0)
+    {
+        strcat(line, &c);
+
+        if (c == '\n' || c == '\r')
+        {
+            if (strstr(line, str) != NULL)
+            {
+                ris++;
+            }
+
+            memset(line, 0, STR_LEN);
+        }
+    }
+
+    close(fd);
+
+    return ris;
 }
 
 /**
