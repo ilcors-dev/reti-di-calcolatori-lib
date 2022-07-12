@@ -1,6 +1,10 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -48,7 +52,11 @@ public class FileUtility {
         } catch (IOException e) {
             System.out.println("Could not read swap file " + filePath);
             e.printStackTrace();
-            bw.close();
+            try {
+                bw.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
             return -1;
         }
 
