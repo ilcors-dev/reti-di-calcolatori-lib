@@ -87,6 +87,8 @@ int main(int argc, char **argv)
 	printf("Waiting user input...\n");
 	while (gets(userInput))
 	{
+		// REMEMBER, when sending integers, you must convert them to network byte order using
+		// htonl() and ntohl() before sending them.
 		int whatever;
 		len = sizeof(servaddr);
 		if (sendto(socked_d, userInput, sizeof(userInput), 0, (struct sockaddr *)&servaddr, len) < 0)
@@ -104,6 +106,7 @@ int main(int argc, char **argv)
 			printf("Waiting user input...\n");
 			continue;
 		}
+		whatever = ntohl(whatever);
 
 		printf("Result: %i\n", whatever);
 		printf("Waiting user input...\n");

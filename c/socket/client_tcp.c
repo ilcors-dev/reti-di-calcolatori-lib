@@ -84,6 +84,8 @@ int main(int argc, char *argv[])
 	while (gets(userInput))
 	{
 		// handle server interaction
+		// REMEMBER, when sending integers, you must convert them to network byte order using
+		// htonl() and ntohl() before sending them.
 		int whatever;
 		printf("Sending to server: %s\n", userInput);
 
@@ -91,6 +93,7 @@ int main(int argc, char *argv[])
 
 		while ((nread = read(socket_d, &whatever, sizeof(int))) > 0)
 		{
+			whatever = ntohl(whatever);
 			printf("%d\n", whatever);
 		}
 

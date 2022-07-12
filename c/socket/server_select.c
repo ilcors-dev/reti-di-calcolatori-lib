@@ -166,7 +166,9 @@ int main(int argc, char **argv)
 				// DO YOUR STUFF IN HERE ---------------------------------------------
 				while ((nread = read(socket_conn_fd, &whatever, sizeof(int))) > 0)
 				{
+					whatever = ntohl(whatever);
 					whatever++;
+					whatever = htonl(whatever);
 					write(socket_conn_fd, &whatever, sizeof(int));
 				}
 				// -------------------------------------------------------------------
@@ -184,7 +186,9 @@ int main(int argc, char **argv)
 		if (FD_ISSET(udp_fd, &rset))
 		{
 			// DO YOUR STUFF IN HERE ---------------------------------------------
-			int whatever;
+			// REMEMBER, when sending integers, you must convert them to network byte order using
+			// htonl() and ntohl() before sending them.
+			int whatever = 0;
 			printf("UDP request received\n");
 
 			len = sizeof(struct sockaddr_in);
@@ -194,7 +198,9 @@ int main(int argc, char **argv)
 				continue;
 			}
 
-			int ris = whatever;
+			int ris = ntohl(whatever);
+			ris++;
+			ris = htonl(ris);
 			if (sendto(udp_fd, &ris, sizeof(ris), 0, (struct sockaddr *)&cliaddr, len) < 0)
 			{
 				perror("Error in sendto");
