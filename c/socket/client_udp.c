@@ -29,18 +29,25 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	if (is_numeric_string(argv[2]) == 0)
+	int nread = 0;
+	while (argv[2][nread] != '\0')
 	{
-		printf("Error:%s serverPort must be a number\n", argv[2]);
-		exit(1);
+		if ((argv[2][nread] < '0') || (argv[2][nread] > '9'))
+		{
+			printf("Please provide a valid port number\n");
+			exit(1);
+		}
+
+		nread++;
 	}
 
 	port = atoi(argv[2]);
-	if (is_port_valid(port) == 0)
+	if (port < 1024 || port > 65535)
 	{
 		printf("Error:%s serverPort must be in the range 1024-65535\n", argv[2]);
 		exit(2);
 	}
+	// ----------------------------------------------------------------------------
 
 	// client address initialization
 	memset((char *)&clientaddr, 0, sizeof(struct sockaddr_in));
