@@ -2,6 +2,8 @@ const TESTS_LEN = 5;
 const OUTPUT_LEN = 10;
 const STR_LEN = 256;
 
+typedef char in_str[STR_LEN];
+
 struct Input {
 	string strType<STR_LEN>;
 	int intType;
@@ -22,6 +24,6 @@ program SERVPROG {
 	version SERVVERS {  
 		/* 0 = ok, -1 = errore */
 		int with_input_struct(Input) = 1;
-		Output with_output_struct(char) = 2;
+		Output with_output_struct(in_str) = 2;
 	} = 1;
 } = 0x20000020;
