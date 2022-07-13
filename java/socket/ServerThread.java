@@ -15,15 +15,22 @@ public class ServerThread extends Thread {
 	public void run() {
 		DataInputStream inSock;
 		DataOutputStream outSock;
+		String userInput;
 
 		try {
 			inSock = new DataInputStream(this.clientSocket.getInputStream());
 			outSock = new DataOutputStream(this.clientSocket.getOutputStream());
+			// NOTE: in this way the server stays alive for one user request then exits
+			// if you want to keep the server alive for multiple requests, you need to use a
+			// put the logic inside a while loop and read until the inSock.read != null!
+			// while ((userInput = inSock.readUTF()) != null) {
+			// try { ..
+			// ..
 
 			// garbage collection is not resource cleanup (destructors)
 			try {
-				String test = inSock.readUTF();
-				outSock.writeUTF(test + "yolo");
+				userInput = inSock.readUTF();
+				outSock.writeUTF(userInput + "yolo");
 			} catch (EOFException ignored) {
 				System.out.println("EOF ricevuto\n Terminata connessione con " + clientSocket);
 				clientSocket.close();
