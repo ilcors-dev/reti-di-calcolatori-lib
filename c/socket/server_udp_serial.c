@@ -97,6 +97,16 @@ int main(int argc, char **argv)
             continue;
         }
 
+        clienthost = gethostbyaddr((char *)&cliaddr.sin_addr, sizeof(cliaddr.sin_addr), AF_INET);
+        if (clienthost == NULL)
+        {
+            printf("client host information not found\n");
+        }
+        else
+        {
+            printf("Request received from: %s %i\n", clienthost->h_name, (unsigned)ntohs(cliaddr.sin_port));
+        }
+
         int ris = ntohl(whatever);
         ris++;
         ris = htonl(ris);

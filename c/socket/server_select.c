@@ -31,6 +31,7 @@ int main(int argc, char **argv)
 	int socket_conn_sd, tcp_sd, udp_sd, nready, maxfdp1;
 	int len, port;
 	fd_set rset;
+	struct hostent *hostTcp, *hostUdp;
 	struct sockaddr_in cliaddr, servaddr;
 
 	// your data here
@@ -168,7 +169,20 @@ int main(int argc, char **argv)
 			{
 				int whatever, nread;
 				close(tcp_sd);
+
 				printf("Running into spawned child, pid=%i\n", getpid());
+
+				hostTcp = gethostbyaddr((char *)&cliaddr.sin_addr, sizeof(cliaddr.sin_addr), AF_INET);
+				if (hostTcp == NULL)
+				{
+					printf("client host information not found\n");
+					close(socket_conn_sd);
+					exit(6);
+				}
+				else
+				{
+					printf("Request received from: %s \n", hostTcp->h_name);
+				}
 
 				// DO YOUR STUFF IN HERE ---------------------------------------------
 				while ((nread = read(socket_conn_sd, &whatever, sizeof(int))) > 0)
@@ -203,6 +217,17 @@ int main(int argc, char **argv)
 			{
 				perror("Error in recvfrom");
 				continue;
+			}
+
+			// printing client information
+			hostUdp = gethostbyaddr((char *)&cliaddr.sin_addr, sizeof(cliaddr.sin_addr), AF_INET);
+			if (hostUdp == NULL)
+			{
+				printf("client host information not found\n");
+			}
+			else
+			{
+				printf("Request received from: %s %i\n", hostUdp->h_name, (unsigned)ntohs(cliaddr.sin_port));
 			}
 
 			int ris = ntohl(whatever);

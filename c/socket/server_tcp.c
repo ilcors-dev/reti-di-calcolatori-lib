@@ -115,6 +115,18 @@ int main(int argc, char **argv)
             close(listen_sd);
             printf("Running into spawned child, pid=%i\n", getpid());
 
+            host = gethostbyaddr((char *)&cliaddr.sin_addr, sizeof(cliaddr.sin_addr), AF_INET);
+            if (host == NULL)
+            {
+                printf("client host information not found\n");
+                close(conn_sd);
+                exit(6);
+            }
+            else
+            {
+                printf("Request received from: %s \n", host->h_name);
+            }
+
             // DO YOUR STUFF IN HERE ---------------------------------------------
             while ((nread = read(conn_sd, &whatever, sizeof(int))) > 0)
             {
